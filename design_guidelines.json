@@ -1,0 +1,154 @@
+{
+  "theme": {
+    "name": "Cinematic Nostalgia",
+    "description": "An intimate, texture-rich aesthetic that feels like a digital scrapbook or a high-end cinema experience. Avoids generic 'tech' looks in favor of warmth, grain, and emotion.",
+    "mode": "light",
+    "emotional_archetype": "Organic & Earthy (Romantic Variant)"
+  },
+  "typography": {
+    "font_families": {
+      "headings": "Playfair Display, serif",
+      "body": "Lato, sans-serif",
+      "accent": "Dancing Script, cursive",
+      "mono": "JetBrains Mono, monospace"
+    },
+    "usage_rules": {
+      "h1": "text-5xl md:text-7xl font-serif tracking-tight text-primary-900",
+      "h2": "text-3xl md:text-5xl font-serif tracking-tight text-primary-800",
+      "body": "text-base md:text-lg font-sans leading-relaxed text-gray-700",
+      "caption": "text-sm font-mono tracking-widest uppercase text-gray-500",
+      "handwritten": "text-2xl md:text-3xl font-accent text-secondary-600 rotate-[-2deg]"
+    },
+    "installation": "Import from Google Fonts: Playfair Display (400, 700), Lato (400, 700), Dancing Script (400, 700)"
+  },
+  "colors": {
+    "palette": {
+      "primary": {
+        "DEFAULT": "#4A0404",
+        "foreground": "#FFF0F0",
+        "50": "#FDF2F2",
+        "100": "#FCE7E7",
+        "200": "#F8CFCF",
+        "300": "#F2A8A8",
+        "400": "#E87575",
+        "500": "#D64545",
+        "600": "#B52B2B",
+        "700": "#911D1D",
+        "800": "#6E1212",
+        "900": "#4A0404"
+      },
+      "secondary": {
+        "DEFAULT": "#D4AF37",
+        "foreground": "#1A1A1A",
+        "50": "#FCFBF4",
+        "100": "#F8F6E6",
+        "200": "#EFE9C6",
+        "300": "#E4D9A0",
+        "400": "#D8C676",
+        "500": "#CCA94D",
+        "600": "#B38F36",
+        "700": "#8F7028",
+        "800": "#6B521D",
+        "900": "#4A3813"
+      },
+      "background": {
+        "DEFAULT": "#F5F2EB",
+        "paper": "#F0EBE0",
+        "dark": "#1A1616"
+      },
+      "text": {
+        "DEFAULT": "#2C2C2C",
+        "muted": "#6B6B6B",
+        "light": "#F5F2EB"
+      }
+    },
+    "gradients": {
+      "hero_overlay": "linear-gradient(to bottom, rgba(74, 4, 4, 0.2), rgba(74, 4, 4, 0.8))",
+      "gold_shimmer": "linear-gradient(45deg, #D4AF37, #F2D675, #D4AF37)"
+    }
+  },
+  "layout": {
+    "spacing_scale": "Generous (2x standard)",
+    "container_padding": "p-6 md:p-12 lg:p-24",
+    "grid_system": {
+      "admin_dashboard": "grid grid-cols-1 md:grid-cols-12 gap-6",
+      "memory_viewer": "flex flex-col h-screen overflow-hidden snap-y snap-mandatory"
+    },
+    "z_index": {
+      "background_texture": -10,
+      "content": 10,
+      "overlay": 20,
+      "modal": 50
+    }
+  },
+  "components": {
+    "buttons": {
+      "primary": "bg-primary text-primary-foreground rounded-full px-8 py-3 font-serif tracking-wide hover:bg-primary-800 transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-1",
+      "secondary": "border border-primary text-primary bg-transparent rounded-full px-8 py-3 font-serif hover:bg-primary-50 transition-all duration-300",
+      "ghost": "text-primary hover:text-primary-800 hover:bg-primary-50/50 rounded-lg px-4 py-2 transition-colors"
+    },
+    "cards": {
+      "memory_card": "bg-white/80 backdrop-blur-sm border border-white/40 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-xl p-6 hover:rotate-1 transition-transform duration-300",
+      "admin_stat": "bg-white border border-gray-100 shadow-sm rounded-xl p-6"
+    },
+    "inputs": {
+      "default": "bg-transparent border-b-2 border-primary/20 focus:border-primary px-0 py-2 outline-none transition-colors placeholder:text-gray-400 font-serif text-lg w-full"
+    },
+    "visual_enhancers": {
+      "texture_overlay": "fixed inset-0 pointer-events-none opacity-[0.03] mix-blend-multiply bg-[url('https://www.transparenttextures.com/patterns/cream-paper.png')]",
+      "glass_panel": "bg-white/10 backdrop-blur-md border border-white/20 shadow-xl"
+    }
+  },
+  "motion": {
+    "transitions": {
+      "default": "transition-all duration-300 ease-out",
+      "slow": "transition-all duration-700 ease-in-out"
+    },
+    "animations": {
+      "fade_in": "animate-in fade-in duration-700",
+      "slide_up": "animate-in slide-in-from-bottom-8 fade-in duration-700",
+      "float": "animate-bounce duration-[3000ms]"
+    }
+  },
+  "assets": {
+    "images": {
+      "hero_background": "https://images.unsplash.com/photo-1751210288343-fd0090170715?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "texture_paper": "https://images.unsplash.com/photo-1711107754323-97e6db084397?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "couple_silhouette": "https://images.unsplash.com/photo-1749566787207-bd56427f4454?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "vintage_texture": "https://images.unsplash.com/photo-1711107752747-bef20d238348?crop=entropy&cs=srgb&fm=jpg&q=85"
+    },
+    "icons": "Lucide React (Heart, Lock, Play, Pause, Share2, Calendar, Image, Video)"
+  },
+  "accessibility": {
+    "contrast_check": "Ensure text on image backgrounds has a semi-transparent overlay or text-shadow.",
+    "focus_states": "Visible focus ring with color-primary-400 offset-2",
+    "aria_labels": "Required for all icon-only buttons"
+  },
+  "instructions_to_main_agent": {
+    "general": "You are building a romantic memory sharing app. The vibe is 'Digital Scrapbook'. Use the provided textures and fonts to create warmth. Do not make it look like a corporate dashboard.",
+    "admin_panel": "Keep it clean but use the 'Paper' background color (#F5F2EB) instead of stark white. Use serif fonts for headings even in the admin panel.",
+    "memory_viewer": "This is the core experience. It should feel like a slideshow. Use full-screen images with text overlays. Use the 'texture_overlay' on all pages to give a grain effect.",
+    "rtl_support": "Ensure all layouts support RTL (Right-to-Left) for Arabic content. Use logical properties (ms-*, me-*) or Tailwind's rtl: modifiers.",
+    "mock_data": "Use the provided image URLs for mock data in the memory viewer."
+  },
+  "UNIVERSAL_GUIDELINES_FOR_MAIN_AGENT": [
+    "Dark colors look good when used independently without gradients. DO NOT use dark colors as gradients",
+    "Don't make generic centered layouts, simplistic gradients, and uniform styling.",
+    "Create depth through layered design elements with z-index hierarchy",
+    "Use glass-morphism effects with backdrop filters (12-24px blur)",
+    "You MUST NOT apply universal transition. Eg: transition: all. This results in breaking transforms. Always add transitions for specific interactive elements like button, input excluding transforms",
+    "You MUST NOT center align the app container, ie do not add .App { text-align: center; } in the css file. This disrupts the human natural reading flow of text",
+    "Always use modern button styles like pill-shaped, or sharp button with interaction animations & color relevant to the app style",
+    "NEVER: use AI assistant Emoji characters like 🤖🧠💭💡🔮🎯📚🎭🎬🎪🎉🎊🎁🎀🎂🍰🎈🎨🎰💰💵💳🏦💎🪙💸🤑📊📈📉💹🔢🏆🥇 etc for icons.",
+    "Every interaction needs micro-animations - hover states, transitions, parallax effects, and entrance animations. Static = dead.",
+    "Use 2-3x more spacing than feels comfortable. Cramped designs look cheap.",
+    "Subtle grain textures, noise overlays, custom cursors, selection states, and loading animations: separates good from extraordinary.",
+    "Main agent relies on these image URLs. Missing categories (especially sponsor logos) = main agent will use placeholder text which is FORBIDDEN",
+    "Prioritize using pre-existing components from src/components/ui when applicable",
+    "Create new components that match the style and conventions of existing components when needed",
+    "Examine existing components to understand the project's component patterns before creating new ones",
+    "Components MUST use named exports (export const ComponentName = ...)",
+    "Pages MUST use default exports (export default function PageName() {...})",
+    "Use sonner for toasts. Sonner component are located in /app/src/components/ui/sonner.tsx"
+  ]
+}
