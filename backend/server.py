@@ -45,6 +45,7 @@ class Memory(BaseModel):
     order: int
 
 class MemoryPageCreate(BaseModel):
+    id: Optional[str] = None  # <-- معرف الصفحة المخصص
     title: str
     password: str
     welcome_message: str
@@ -61,7 +62,7 @@ class MemoryPageUpdate(BaseModel):
 class MemoryPage(BaseModel):
     model_config = ConfigDict(extra="ignore")
     
-    id: str
+    id: Optional[str] = None  # <-- معرف الصفحة المخصص
     title: str
     welcome_message: str
     memories: List[Memory]
@@ -121,7 +122,7 @@ async def get_memory_pages():
 
 @api_router.post("/memory-pages", response_model=MemoryPage)
 async def create_memory_page(page: MemoryPageCreate):
-    page_id = str(uuid.uuid4())
+    page_id = page.id or str(uuid.uuid4())  # <-- استخدم id إذا موجود
     hashed_password = hash_password(page.password)
     
     page_doc = {
