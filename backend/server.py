@@ -89,7 +89,7 @@ def verify_password(password: str, hashed: str) -> bool:
 async def init_admin():
     admin = await db.admin.find_one({"username": "OnlyGg"})
     if not admin:
-        hashed = hash_password("123456")
+        hashed = hash_password("134679")
         await db.admin.insert_one({
             "username": "OnlyGg",
             "password_hash": hashed
@@ -166,11 +166,16 @@ async def update_memory_page(page_id: str, update: MemoryPageUpdate):
         update_data["memories"] = [m.model_dump() for m in update.memories]
     if update.final_message is not None:
         update_data["final_message"] = update.final_message
-    
+    if getattr(update, "id", None):  # لو المستخدم غيّر الـ ID
+        update_data["id"] = update.id
+        update_data["page_url"] = f"/view/{update.id}"  # تحديث الرابط تلقائي
+
     await db.memory_pages.update_one({"id": page_id}, {"$set": update_data})
     
-    updated_page = await db.memory_pages.find_one({"id": page_id}, {"_id": 0, "password_hash": 0})
+    updated_page = await db.memory_pages.find_one({"id": update_data.get("id", page_id)}, {"_id": 0, "password_hash": 0})
     return MemoryPage(**updated_page)
+
+
 
 @api_router.delete("/memory-pages/{page_id}")
 async def delete_memory_page(page_id: str):
