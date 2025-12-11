@@ -6,10 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Heart, Plus, Trash2, Upload, ArrowLeft, Image as ImageIcon, Video } from "lucide-react";
+import { Heart, Plus, Trash2, Upload, ArrowLeft, Image as ImageIcon, Video, Shuffle } from "lucide-react";
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+const BACKEND_URL = "https://gih-production.up.railway.app";
+const API = `https://gih-production.up.railway.app/api`;
 
 export default function EditMemoryPage() {
   const { id } = useParams();
@@ -17,6 +17,7 @@ export default function EditMemoryPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
+    page_id: "",
     title: "",
     password: "",
     welcome_message: "",
@@ -33,6 +34,7 @@ export default function EditMemoryPage() {
       const response = await axios.get(`${API}/memory-pages/${id}`);
       const page = response.data;
       setFormData({
+        page_id: page.id, // <-- حفظ الـ id الحالي
         title: page.title,
         password: "",
         welcome_message: page.welcome_message,
@@ -45,6 +47,13 @@ export default function EditMemoryPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const generateRandomCode = () => {
+    const code = [...Array(8)]
+      .map(() => Math.random().toString(36)[2].toUpperCase())
+      .join("");
+    setFormData({ ...formData, page_id: code });
   };
 
   const handleAddMemory = () => {
@@ -62,11 +71,11 @@ export default function EditMemoryPage() {
   };
 
   const handleFileUpload = async (index, file) => {
-    const formData = new FormData();
-    formData.append("file", file);
+    const formDataFile = new FormData();
+    formDataFile.append("file", file);
 
     try {
-      const response = await axios.post(`${API}/upload`, formData, {
+      const response = await axios.post(`${API}/upload`, formDataFile, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
@@ -94,6 +103,7 @@ export default function EditMemoryPage() {
 
     try {
       const payload = {
+        id: formData.page_id, // <-- إرسال الـ id الجديد أو الحالي
         title: formData.title,
         welcome_message: formData.welcome_message,
         final_message: formData.final_message,
@@ -134,7 +144,6 @@ export default function EditMemoryPage() {
               onClick={() => navigate("/admin/dashboard")}
               variant="ghost"
               size="sm"
-              data-testid="back-button"
             >
               <ArrowLeft className="w-5 h-5" />
             </Button>
@@ -142,7 +151,7 @@ export default function EditMemoryPage() {
               <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: '#4A0404' }}>
                 <Heart className="w-5 h-5 text-white fill-white" />
               </div>
-              <h1 className="text-2xl md:text-3xl font-serif" style={{ color: '#4A0404' }} data-testid="edit-page-title">
+              <h1 className="text-2xl md:text-3xl font-serif" style={{ color: '#4A0404' }}>
                 تعديل صفحة الذكريات
               </h1>
             </div>
@@ -150,13 +159,32 @@ export default function EditMemoryPage() {
         </header>
 
         <main className="max-w-4xl mx-auto px-6 py-12">
-          <form onSubmit={handleSubmit} className="space-y-8" data-testid="edit-memory-form">
+          <form onSubmit={handleSubmit} className="space-y-8">
             <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-8 border border-white/40">
               <h2 className="text-2xl font-serif mb-6" style={{ color: '#4A0404' }}>
                 المعلومات الأساسية
               </h2>
 
               <div className="space-y-6">
+                {/* حقل تعديل الـ ID */}
+                <div>
+                  <Label htmlFor="page_id" className="font-sans mb-2 block">
+                    معرف الصفحة
+                  </Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="page_id"
+                      value={formData.page_id}
+                      onChange={(e) => setFormData({ ...formData, page_id: e.target.value })}
+                      placeholder="أدخل معرف مخصص أو استخدم زر Generate"
+                      className="font-sans"
+                    />
+                    <Button type="button" onClick={generateRandomCode} className="flex items-center gap-1">
+                      <Shuffle className="w-4 h-4" /> Generate
+                    </Button>
+                  </div>
+                </div>
+
                 <div>
                   <Label htmlFor="title" className="font-sans mb-2 block">
                     عنوان الصفحة
@@ -167,7 +195,6 @@ export default function EditMemoryPage() {
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                     required
                     className="font-sans"
-                    data-testid="title-input"
                   />
                 </div>
 
@@ -182,7 +209,6 @@ export default function EditMemoryPage() {
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                     placeholder="كلمة المرور الجديدة (اختياري)"
                     className="font-sans"
-                    data-testid="password-input"
                   />
                 </div>
 
@@ -197,7 +223,6 @@ export default function EditMemoryPage() {
                     required
                     rows={4}
                     className="font-sans"
-                    data-testid="welcome-message-input"
                   />
                 </div>
 
@@ -212,12 +237,12 @@ export default function EditMemoryPage() {
                     required
                     rows={4}
                     className="font-sans"
-                    data-testid="final-message-input"
                   />
                 </div>
               </div>
             </div>
 
+            {/* الذكريات */}
             <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-8 border border-white/40">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-serif" style={{ color: '#4A0404' }}>
@@ -228,7 +253,6 @@ export default function EditMemoryPage() {
                   onClick={handleAddMemory}
                   className="rounded-full font-sans"
                   style={{ backgroundColor: '#4A0404' }}
-                  data-testid="add-memory-button"
                 >
                   <Plus className="w-4 h-4 ml-2" />
                   إضافة ذكرى
@@ -240,12 +264,11 @@ export default function EditMemoryPage() {
                   <p className="text-gray-500 font-sans">لم تتم إضافة أي ذكريات بعد</p>
                 </div>
               ) : (
-                <div className="space-y-6" data-testid="memories-list">
+                <div className="space-y-6">
                   {memories.map((memory, index) => (
                     <div
                       key={index}
                       className="border-2 border-gray-200 rounded-xl p-6 space-y-4"
-                      data-testid={`memory-item-${index}`}
                     >
                       <div className="flex items-center justify-between">
                         <span className="font-serif text-lg" style={{ color: '#4A0404' }}>
@@ -257,7 +280,6 @@ export default function EditMemoryPage() {
                           variant="ghost"
                           size="sm"
                           className="text-red-600 hover:text-red-700"
-                          data-testid={`remove-memory-${index}`}
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
@@ -274,7 +296,6 @@ export default function EditMemoryPage() {
                               accept="image/*,video/*"
                               onChange={(e) => e.target.files[0] && handleFileUpload(index, e.target.files[0])}
                               className="hidden"
-                              data-testid={`file-input-${index}`}
                             />
                           </label>
                           {memory.url && (
@@ -294,7 +315,6 @@ export default function EditMemoryPage() {
                           placeholder="أضف نصاً يصف هذه الذكرى..."
                           rows={3}
                           className="font-sans"
-                          data-testid={`caption-input-${index}`}
                         />
                       </div>
                     </div>
@@ -309,7 +329,6 @@ export default function EditMemoryPage() {
                 onClick={() => navigate("/admin/dashboard")}
                 variant="outline"
                 className="font-sans"
-                data-testid="cancel-button"
               >
                 إلغاء
               </Button>
@@ -318,7 +337,6 @@ export default function EditMemoryPage() {
                 disabled={saving}
                 className="text-white rounded-full px-8 py-3 font-serif"
                 style={{ backgroundColor: '#4A0404' }}
-                data-testid="save-button"
               >
                 {saving ? "جاري الحفظ..." : "حفظ التغييرات"}
               </Button>

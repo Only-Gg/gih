@@ -6,10 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Heart, Plus, Trash2, Upload, ArrowLeft, Image as ImageIcon, Video } from "lucide-react";
+import { Heart, Plus, Trash2, Upload, ArrowLeft, Image as ImageIcon, Video, Shuffle } from "lucide-react";
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+const BACKEND_URL = "https://gih-production.up.railway.app";
+const API = `https://gih-production.up.railway.app/api`;
 
 export default function CreateMemoryPage() {
   const navigate = useNavigate();
@@ -19,6 +19,7 @@ export default function CreateMemoryPage() {
     password: "",
     welcome_message: "",
     final_message: "",
+    page_id: "", // معرف الصفحة المخصص
   });
   const [memories, setMemories] = useState([]);
 
@@ -37,11 +38,11 @@ export default function CreateMemoryPage() {
   };
 
   const handleFileUpload = async (index, file) => {
-    const formData = new FormData();
-    formData.append("file", file);
+    const formDataFile = new FormData();
+    formDataFile.append("file", file);
 
     try {
-      const response = await axios.post(`${API}/upload`, formData, {
+      const response = await axios.post(`${API}/upload`, formDataFile, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
@@ -57,6 +58,14 @@ export default function CreateMemoryPage() {
     }
   };
 
+  // دالة توليد كود عشوائي
+  const generateRandomCode = () => {
+    const code = [...Array(8)]
+      .map(() => Math.random().toString(36)[2].toUpperCase())
+      .join("");
+    setFormData({ ...formData, page_id: code });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -70,6 +79,7 @@ export default function CreateMemoryPage() {
     try {
       const payload = {
         ...formData,
+        id: formData.page_id || undefined, // إذا المستخدم حط كود استخدمه، لو فاضي يبعت undefined
         memories: memories.map((m, i) => ({ ...m, order: i })),
       };
 
@@ -147,6 +157,23 @@ export default function CreateMemoryPage() {
                     className="font-sans"
                     data-testid="password-input"
                   />
+                </div>
+
+                {/* حقل Page ID مع زر Generate */}
+                <div>
+                  <Label htmlFor="pageId" className="font-sans mb-2 block">معرف الصفحة (اختياري)</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="pageId"
+                      value={formData.page_id}
+                      onChange={(e) => setFormData({ ...formData, page_id: e.target.value })}
+                      placeholder="أدخل معرف مخصص أو استخدم زر Generate"
+                      className="font-sans"
+                    />
+                    <Button type="button" onClick={generateRandomCode} className="flex items-center gap-1">
+                      <Shuffle className="w-4 h-4" /> Generate
+                    </Button>
+                  </div>
                 </div>
 
                 <div>

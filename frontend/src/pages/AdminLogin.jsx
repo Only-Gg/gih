@@ -7,8 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Heart, Lock } from "lucide-react";
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+const BACKEND_URL = "https://gih-production.up.railway.app";
+const API = `https://gih-production.up.railway.app/api`;
 
 export default function AdminLogin() {
   const [username, setUsername] = useState("");
@@ -79,7 +79,7 @@ export default function AdminLogin() {
                 onChange={(e) => setUsername(e.target.value)}
                 required
                 className="w-full px-4 py-3 rounded-lg border-2 focus:border-[#4A0404] font-sans"
-                placeholder="OnlyGg"
+                placeholder="Username"
                 data-testid="username-input"
               />
             </div>
@@ -122,9 +122,7 @@ export default function AdminLogin() {
           </form>
 
           <div className="mt-8 pt-6 border-t border-gray-200">
-            <p className="text-xs text-center text-gray-500 font-sans">
-              بيانات التجربة: اسم المستخدم <span className="font-bold">OnlyGg</span> - كلمة المرور <span className="font-bold">123456</span>
-            </p>
+
           </div>
         </div>
       </div>
