@@ -89,7 +89,7 @@ def verify_password(password: str, hashed: str) -> bool:
 async def init_admin():
     admin = await db.admin.find_one({"username": "OnlyGg"})
     if not admin:
-        hashed = hash_password("134679")
+        hashed = hash_password("134679!!")
         await db.admin.insert_one({
             "username": "OnlyGg",
             "password_hash": hashed
