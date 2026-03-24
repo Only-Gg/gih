@@ -29,6 +29,28 @@ app = FastAPI()
 api_router = APIRouter(prefix="/api")
 
 # Models
+# في ملف server.py ابحث عن MemoryPageCreate و MemoryPage وحدثهم:
+
+class MemoryPageCreate(BaseModel):
+    id: Optional[str] = None
+    title: str
+    password: str
+    welcome_message: str
+    memories: List[Memory]
+    final_message: str
+    start_date: Optional[str] = "2026-03-15T00:00:00" # الحقل الجديد
+    music_url: Optional[str] = "" # الحقل الجديد
+
+class MemoryPage(BaseModel):
+    id: str
+    title: str
+    welcome_message: str
+    memories: List[Memory]
+    final_message: str
+    start_date: Optional[str] = "2026-03-15T00:00:00"
+    music_url: Optional[str] = ""
+    created_at: datetime
+    
 class AdminLogin(BaseModel):
     username: str
     password: str
@@ -89,7 +111,7 @@ def verify_password(password: str, hashed: str) -> bool:
 async def init_admin():
     admin = await db.admin.find_one({"username": "OnlyGg"})
     if not admin:
-        hashed = hash_password("134679!!")
+        hashed = hash_password("134679")
         await db.admin.insert_one({
             "username": "OnlyGg",
             "password_hash": hashed
