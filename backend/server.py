@@ -29,27 +29,6 @@ app = FastAPI()
 api_router = APIRouter(prefix="/api")
 
 # Models
-# في ملف server.py ابحث عن MemoryPageCreate و MemoryPage وحدثهم:
-
-class MemoryPageCreate(BaseModel):
-    id: Optional[str] = None
-    title: str
-    password: str
-    welcome_message: str
-    memories: List[Memory]
-    final_message: str
-    start_date: Optional[str] = "2026-03-15T00:00:00" # الحقل الجديد
-    music_url: Optional[str] = "" # الحقل الجديد
-
-class MemoryPage(BaseModel):
-    id: str
-    title: str
-    welcome_message: str
-    memories: List[Memory]
-    final_message: str
-    start_date: Optional[str] = "2026-03-15T00:00:00"
-    music_url: Optional[str] = ""
-    created_at: datetime
     
 class AdminLogin(BaseModel):
     username: str
@@ -65,21 +44,26 @@ class Memory(BaseModel):
     url: str
     caption: str
     order: int
-
+    
 class MemoryPageCreate(BaseModel):
-    id: Optional[str] = None  # <-- معرف الصفحة المخصص
+    id: Optional[str] = None
     title: str
     password: str
     welcome_message: str
-    memories: List[Memory]
+    start_date: Optional[str] = ""  # الحقل الجديد (التاريخ)
+    music_url: Optional[str] = ""   # الحقل الجديد (الموسيقى)
+    memories: List[Memory]          # هنا لن يحدث خطأ لأن Memory تم تعريفها بالأعلى
     final_message: str
 
+# 3. كلاس الـ MemoryPageUpdate
 class MemoryPageUpdate(BaseModel):
     title: Optional[str] = None
     password: Optional[str] = None
     welcome_message: Optional[str] = None
-    memories: Optional[List[Memory]] = None
     final_message: Optional[str] = None
+    start_date: Optional[str] = None
+    music_url: Optional[str] = None
+    memories: Optional[List[Memory]] = None
 
 class MemoryPage(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -91,6 +75,7 @@ class MemoryPage(BaseModel):
     final_message: str
     created_at: str
     page_url: str
+    
 
 class PasswordVerify(BaseModel):
     password: str
