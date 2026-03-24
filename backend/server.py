@@ -44,19 +44,22 @@ class Memory(BaseModel):
     url: str
     caption: str
     order: int
-    
+
+# ثانياً: كلاس الإنشاء (يستخدم Memory)
 class MemoryPageCreate(BaseModel):
     id: Optional[str] = None
     title: str
     password: str
     welcome_message: str
-    start_date: Optional[str] = ""  # الحقل الجديد (التاريخ)
-    music_url: Optional[str] = ""   # الحقل الجديد (الموسيقى)
-    memories: List[Memory]          # هنا لن يحدث خطأ لأن Memory تم تعريفها بالأعلى
+    # الحقول الجديدة اختيارية مع قيمة افتراضية فارغة
+    start_date: Optional[str] = "" 
+    music_url: Optional[str] = ""
+    memories: List[Memory]
     final_message: str
 
-# 3. كلاس الـ MemoryPageUpdate
+# ثالثاً: كلاس التحديث
 class MemoryPageUpdate(BaseModel):
+    id: Optional[str] = None
     title: Optional[str] = None
     password: Optional[str] = None
     welcome_message: Optional[str] = None
@@ -65,12 +68,14 @@ class MemoryPageUpdate(BaseModel):
     music_url: Optional[str] = None
     memories: Optional[List[Memory]] = None
 
+# رابعاً: كلاس العرض (Response Model)
 class MemoryPage(BaseModel):
     model_config = ConfigDict(extra="ignore")
-    
-    id: Optional[str] = None  # <-- معرف الصفحة المخصص
+    id: Optional[str] = None
     title: str
     welcome_message: str
+    start_date: Optional[str] = "" # أضفه هنا ليظهر في الفرونت اند
+    music_url: Optional[str] = ""  # أضفه هنا ليظهر في الفرونت اند
     memories: List[Memory]
     final_message: str
     created_at: str
@@ -129,7 +134,7 @@ async def get_memory_pages():
 
 @api_router.post("/memory-pages", response_model=MemoryPage)
 async def create_memory_page(page: MemoryPageCreate):
-    page_id = page.id or str(uuid.uuid4())  # <-- استخدم id إذا موجود
+    page_id = page.id or str(uuid.uuid4())
     hashed_password = hash_password(page.password)
     
     page_doc = {
@@ -137,15 +142,14 @@ async def create_memory_page(page: MemoryPageCreate):
         "title": page.title,
         "password_hash": hashed_password,
         "welcome_message": page.welcome_message,
+        "start_date": page.start_date, # إضافة الحقل
+        "music_url": page.music_url,   # إضافة الحقل
         "memories": [m.model_dump() for m in page.memories],
         "final_message": page.final_message,
         "created_at": datetime.now(timezone.utc).isoformat(),
         "page_url": f"/view/{page_id}"
     }
-    
     await db.memory_pages.insert_one(page_doc)
-    
-    # Return without password_hash
     page_doc.pop("password_hash")
     return MemoryPage(**page_doc)
 
