@@ -28,8 +28,8 @@ UPLOADS_DIR.mkdir(exist_ok=True)
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
 
-# Models
-    
+# --- Models ---
+
 class AdminLogin(BaseModel):
     username: str
     password: str
@@ -45,19 +45,16 @@ class Memory(BaseModel):
     caption: str
     order: int
 
-# ثانياً: كلاس الإنشاء (يستخدم Memory)
 class MemoryPageCreate(BaseModel):
     id: Optional[str] = None
     title: str
     password: str
     welcome_message: str
-    # الحقول الجديدة اختيارية مع قيمة افتراضية فارغة
     start_date: Optional[str] = "" 
     music_url: Optional[str] = ""
     memories: List[Memory]
     final_message: str
 
-# ثالثاً: كلاس التحديث
 class MemoryPageUpdate(BaseModel):
     id: Optional[str] = None
     title: Optional[str] = None
@@ -68,19 +65,17 @@ class MemoryPageUpdate(BaseModel):
     music_url: Optional[str] = None
     memories: Optional[List[Memory]] = None
 
-# رابعاً: كلاس العرض (Response Model)
 class MemoryPage(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: Optional[str] = None
     title: str
     welcome_message: str
-    start_date: Optional[str] = "" # أضفه هنا ليظهر في الفرونت اند
-    music_url: Optional[str] = ""  # أضفه هنا ليظهر في الفرونت اند
+    start_date: Optional[str] = ""
+    music_url: Optional[str] = ""
     memories: List[Memory]
     final_message: str
     created_at: str
     page_url: str
-    
 
 class PasswordVerify(BaseModel):
     password: str
@@ -90,11 +85,11 @@ class PasswordVerifyResponse(BaseModel):
     message: str
     data: Optional[MemoryPage] = None
 
-# Helper functions
+# --- Helper functions ---
 def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
-def verify_password(password: str, hashed: str) -> bool:
+def verify_password_check(password: str, hashed: str) -> bool:
     return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
 
 # Initialize admin user
@@ -112,18 +107,13 @@ async def init_admin():
 async def startup_event():
     await init_admin()
 
-# Routes
+# --- Routes ---
+
 @api_router.post("/auth/admin-login", response_model=AdminLoginResponse)
 async def admin_login(credentials: AdminLogin):
-    admin = await db.admin.find_one({"username": credentials.username}, {"_id": 0})
-    
-    if not admin:
+    admin = await db.admin.find_one({"username": credentials.username})
+    if not admin or not verify_password_check(credentials.password, admin["password_hash"]):
         return AdminLoginResponse(success=False, message="اسم المستخدم أو كلمة المرور غير صحيحة")
-    
-    if not verify_password(credentials.password, admin["password_hash"]):
-        return AdminLoginResponse(success=False, message="اسم المستخدم أو كلمة المرور غير صحيحة")
-    
-    # Simple token (in production, use JWT)
     token = str(uuid.uuid4())
     return AdminLoginResponse(success=True, message="تم تسجيل الدخول بنجاح", token=token)
 
@@ -142,8 +132,8 @@ async def create_memory_page(page: MemoryPageCreate):
         "title": page.title,
         "password_hash": hashed_password,
         "welcome_message": page.welcome_message,
-        "start_date": page.start_date, # إضافة الحقل
-        "music_url": page.music_url,   # إضافة الحقل
+        "start_date": page.start_date,
+        "music_url": page.music_url,
         "memories": [m.model_dump() for m in page.memories],
         "final_message": page.final_message,
         "created_at": datetime.now(timezone.utc).isoformat(),
@@ -167,26 +157,27 @@ async def update_memory_page(page_id: str, update: MemoryPageUpdate):
         raise HTTPException(status_code=404, detail="الصفحة غير موجودة")
     
     update_data = {}
-    if update.title is not None:
-        update_data["title"] = update.title
-    if update.password is not None:
+    # نتحقق من وجود القيم ونقوم بتحديثها فقط إذا تم إرسالها (ليظل اختياري)
+    if update.title is not None: update_data["title"] = update.title
+    if update.password is not None and update.password != "": 
         update_data["password_hash"] = hash_password(update.password)
-    if update.welcome_message is not None:
-        update_data["welcome_message"] = update.welcome_message
-    if update.memories is not None:
-        update_data["memories"] = [m.model_dump() for m in update.memories]
-    if update.final_message is not None:
-        update_data["final_message"] = update.final_message
-    if getattr(update, "id", None):  # لو المستخدم غيّر الـ ID
+    if update.welcome_message is not None: update_data["welcome_message"] = update.welcome_message
+    if update.memories is not None: update_data["memories"] = [m.model_dump() for m in update.memories]
+    if update.final_message is not None: update_data["final_message"] = update.final_message
+    
+    # تحديث الحقول الجديدة (الاختيارية)
+    if update.start_date is not None: update_data["start_date"] = update.start_date
+    if update.music_url is not None: update_data["music_url"] = update.music_url
+    
+    if getattr(update, "id", None): 
         update_data["id"] = update.id
-        update_data["page_url"] = f"/view/{update.id}"  # تحديث الرابط تلقائي
+        update_data["page_url"] = f"/view/{update.id}"
 
     await db.memory_pages.update_one({"id": page_id}, {"$set": update_data})
     
-    updated_page = await db.memory_pages.find_one({"id": update_data.get("id", page_id)}, {"_id": 0, "password_hash": 0})
+    new_id = update_data.get("id", page_id)
+    updated_page = await db.memory_pages.find_one({"id": new_id}, {"_id": 0, "password_hash": 0})
     return MemoryPage(**updated_page)
-
-
 
 @api_router.delete("/memory-pages/{page_id}")
 async def delete_memory_page(page_id: str):
@@ -201,56 +192,35 @@ async def verify_page_password(page_id: str, verify: PasswordVerify):
     if not page:
         raise HTTPException(status_code=404, detail="الصفحة غير موجودة")
     
-    if not verify_password(verify.password, page["password_hash"]):
+    if not verify_password_check(verify.password, page["password_hash"]):
         return PasswordVerifyResponse(success=False, message="كلمة المرور غير صحيحة")
     
-    # Remove sensitive data
     page.pop("_id", None)
     page.pop("password_hash", None)
-    
-    return PasswordVerifyResponse(
-        success=True, 
-        message="تم التحقق بنجاح",
-        data=MemoryPage(**page)
-    )
+    return PasswordVerifyResponse(success=True, message="تم التحقق بنجاح", data=MemoryPage(**page))
 
 @api_router.post("/upload")
 async def upload_file(file: UploadFile = File(...)):
     try:
-        # Generate unique filename
         file_ext = Path(file.filename).suffix
         unique_filename = f"{uuid.uuid4()}{file_ext}"
         file_path = UPLOADS_DIR / unique_filename
-        
-        # Save file
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
-        
-        # Return URL
-        file_url = f"/uploads/{unique_filename}"
-        return {"success": True, "url": file_url, "filename": unique_filename}
+        return {"success": True, "url": f"/uploads/{unique_filename}", "filename": unique_filename}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"خطأ في رفع الملف: {str(e)}")
 
-# Mount uploads directory
 app.mount("/uploads", StaticFiles(directory=str(UPLOADS_DIR)), name="uploads")
-
-# Include router
 app.include_router(api_router)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # السماح لأي دومين للتجربة
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
