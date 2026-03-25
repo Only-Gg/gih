@@ -12,24 +12,30 @@ import uuid
 from datetime import datetime, timezone
 import bcrypt
 import shutil
+import cloudinary
+import cloudinary.uploader
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
+
+# --- إعدادات Cloudinary ---
+# تأكد من إضافة هذه المتغيرات في ملف .env أو في إعدادات Railway
+cloudinary.config( 
+  cloud_name = os.getenv("CLOUDINARY_CLOUD_NAME"), 
+  api_key = os.getenv("CLOUDINARY_API_KEY"), 
+  api_secret = os.getenv("CLOUDINARY_API_SECRET"),
+  secure = True
+)
 
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
-# Create uploads directory
-UPLOADS_DIR = ROOT_DIR / 'uploads'
-UPLOADS_DIR.mkdir(exist_ok=True)
-
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
 
 # --- Models ---
-
 class AdminLogin(BaseModel):
     username: str
     password: str
@@ -92,7 +98,6 @@ def hash_password(password: str) -> str:
 def verify_password_check(password: str, hashed: str) -> bool:
     return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
 
-# Initialize admin user
 async def init_admin():
     admin = await db.admin.find_one({"username": "OnlyGg"})
     if not admin:
@@ -157,15 +162,12 @@ async def update_memory_page(page_id: str, update: MemoryPageUpdate):
         raise HTTPException(status_code=404, detail="الصفحة غير موجودة")
     
     update_data = {}
-    # نتحقق من وجود القيم ونقوم بتحديثها فقط إذا تم إرسالها (ليظل اختياري)
     if update.title is not None: update_data["title"] = update.title
     if update.password is not None and update.password != "": 
         update_data["password_hash"] = hash_password(update.password)
     if update.welcome_message is not None: update_data["welcome_message"] = update.welcome_message
     if update.memories is not None: update_data["memories"] = [m.model_dump() for m in update.memories]
     if update.final_message is not None: update_data["final_message"] = update.final_message
-    
-    # تحديث الحقول الجديدة (الاختيارية)
     if update.start_date is not None: update_data["start_date"] = update.start_date
     if update.music_url is not None: update_data["music_url"] = update.music_url
     
@@ -199,19 +201,30 @@ async def verify_page_password(page_id: str, verify: PasswordVerify):
     page.pop("password_hash", None)
     return PasswordVerifyResponse(success=True, message="تم التحقق بنجاح", data=MemoryPage(**page))
 
+# --- تعديل دالة الرفع للرفع السحابي (Cloudinary) ---
 @api_router.post("/upload")
 async def upload_file(file: UploadFile = File(...)):
     try:
-        file_ext = Path(file.filename).suffix
-        unique_filename = f"{uuid.uuid4()}{file_ext}"
-        file_path = UPLOADS_DIR / unique_filename
-        with open(file_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
-        return {"success": True, "url": f"/uploads/{unique_filename}", "filename": unique_filename}
+        # الرفع المباشر إلى Cloudinary
+        # resource_type="auto" يتعامل مع الصور والفيديوهات أوتوماتيكياً
+        upload_result = cloudinary.uploader.upload(
+            file.file,
+            folder="memories_app",
+            resource_type="auto"
+        )
+        
+        # الرابط السحابي الدائم
+        permanent_url = upload_result.get("secure_url")
+        
+        return {
+            "success": True, 
+            "url": permanent_url, 
+            "filename": file.filename
+        }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"خطأ في رفع الملف: {str(e)}")
+        logging.error(f"Upload error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"خطأ في الرفع السحابي: {str(e)}")
 
-app.mount("/uploads", StaticFiles(directory=str(UPLOADS_DIR)), name="uploads")
 app.include_router(api_router)
 
 app.add_middleware(
